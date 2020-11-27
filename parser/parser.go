@@ -7,25 +7,33 @@ import (
 	"github.com/ldb/lambda/token"
 )
 
+type ParseError struct {
+	Position int
+	msg      error
+}
+
+func (e *ParseError) Error() string {
+	return e.msg.Error()
+}
+
 type Parser struct {
 	l         *lexer.Lexer
 	curToken  token.Token
 	peekToken token.Token
-	errors    []string
+	error     error
 }
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l:      l,
-		errors: []string{},
+		l: l,
 	}
 	p.nextToken()
 	p.nextToken()
 	return p
 }
 
-func (p *Parser) Errors() []string {
-	return p.errors
+func (p *Parser) Error() error {
+	return p.error
 }
 
 func (p *Parser) ParseLambdaTerm() *ast.LambdaTerm {
@@ -133,11 +141,15 @@ func (p *Parser) expectPeek(k token.Kind) bool {
 }
 
 func (p *Parser) peekTokenError(k token.Kind) {
-	e := fmt.Sprintf("unexpected next Token: expected %s, got %s instead", k, p.peekToken.Kind)
-	p.errors = append(p.errors, e)
+	p.error = &ParseError{
+		msg:      fmt.Errorf("unexpected next Token at position %d: expected %s, got %s instead", p.peekToken.Position, k, p.peekToken.Kind),
+		Position: p.peekToken.Position,
+	}
 }
 
 func (p *Parser) currentTokenError(k ...token.Kind) {
-	e := fmt.Sprintf("unexpected Token: expected %s, got expected %s instead", k, p.curToken.Kind)
-	p.errors = append(p.errors, e)
+	p.error = &ParseError{
+		msg:      fmt.Errorf("unexpected Token at position %d: expected %s, got expected %s instead", p.curToken.Position, k, p.curToken.Kind),
+		Position: p.curToken.Position,
+	}
 }

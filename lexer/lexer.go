@@ -30,23 +30,24 @@ func (l *Lexer) Next() token.Token {
 
 	switch l.ch {
 	case '\\':
-		tok = newToken(token.LAMBDA, l.ch)
+		tok = newToken(token.LAMBDA, l.ch, l.pos)
 	case '(':
-		tok = newToken(token.LPAREN, l.ch)
+		tok = newToken(token.LPAREN, l.ch, l.pos)
 	case ')':
-		tok = newToken(token.RPAREN, l.ch)
+		tok = newToken(token.RPAREN, l.ch, l.pos)
 	case '.':
-		tok = newToken(token.DOT, l.ch)
+		tok = newToken(token.DOT, l.ch, l.pos)
 	case ' ':
-		tok = newToken(token.SPACE, l.ch)
+		tok = newToken(token.SPACE, l.ch, l.pos)
 	case 0:
 		tok.Literal = ""
 		tok.Kind = token.EOF
+		tok.Position = l.pos
 	default:
 		if isLetter(l.ch) {
-			tok = newToken(token.IDENT, l.ch)
+			tok = newToken(token.IDENT, l.ch, l.pos)
 		} else {
-			tok = newToken(token.ILLEGAL, l.ch)
+			tok = newToken(token.ILLEGAL, l.ch, l.pos)
 		}
 	}
 
@@ -54,8 +55,8 @@ func (l *Lexer) Next() token.Token {
 	return tok
 }
 
-func newToken(kind token.Kind, ch byte) token.Token {
-	return token.Token{Kind: kind, Literal: string(ch)}
+func newToken(kind token.Kind, ch byte, p int) token.Token {
+	return token.Token{Kind: kind, Literal: string(ch), Position: p}
 }
 
 func isLetter(ch byte) bool {

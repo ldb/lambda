@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/ldb/lambda/lexer"
@@ -58,8 +59,8 @@ func startREPL(in io.Reader, out io.Writer, mode mode) {
 		p := parser.New(l)
 
 		term := p.ParseLambdaTerm()
-		if len(p.Errors()) != 0 {
-			printParseErrors(out, p.Errors())
+		if err := p.Error(); err != nil {
+			printParseErrors(out, err)
 			continue
 		}
 
@@ -80,8 +81,11 @@ func startREPL(in io.Reader, out io.Writer, mode mode) {
 	}
 }
 
-func printParseErrors(out io.Writer, errors []string) {
-	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+func printParseErrors(out io.Writer, err error) {
+	var pErr *parser.ParseError
+	if errors.As(err, &pErr) {
+		lp := strings.Repeat(" ", len(prompt)+pErr.Position-1)
+		io.WriteString(out, lp+"^ ")
 	}
+	io.WriteString(out, err.Error()+"\n")
 }
