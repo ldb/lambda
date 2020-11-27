@@ -39,8 +39,10 @@ func TestParsAbstractionTerm(t *testing.T) {
 		expectedBodyLiteral string
 	}{
 		{`(\x.x)`, "x", "x"},
+		{`\x.x`, "x", "x"},
 		{`(\x.(x x))`, "x", "(x x)"},
 		{`(\x.(\x.x))`, "x", `(\x.x)`},
+		{`\x.\y.(x y)`, "x", `(\y.(x y))`},
 	}
 
 	for _, tc := range testCases {
@@ -78,6 +80,7 @@ func TestParseApplicationTerm(t *testing.T) {
 		{"((x x) (x x))", "(x x)", "(x x)"},
 		{"(x x) (x x)", "(x x)", "(x x)"},
 		{`(x (\x.x))`, "x", `(\x.x)`},
+		{`\x.x \y.y`, `(\x.x)`, `(\y.y)`},
 	}
 
 	for _, tc := range testCases {
@@ -102,14 +105,8 @@ func TestParseApplicationTerm(t *testing.T) {
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
-	errors := p.Errors()
-	if len(errors) == 0 {
-		return
+	if err := p.Error(); err != nil {
+		t.Errorf("parser error: %v", err)
+		t.FailNow()
 	}
-
-	t.Errorf("parser has %d errors", len(errors))
-	for _, msg := range errors {
-		t.Errorf("parser error: %q", msg)
-	}
-	t.FailNow()
 }

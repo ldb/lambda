@@ -71,6 +71,8 @@ func (p *Parser) parseTerm() ast.Term {
 	switch p.curToken.Kind {
 	case token.IDENT:
 		return p.parseVariableTerm()
+	case token.LAMBDA:
+		return p.parseAbstractionTerm()
 	case token.LPAREN:
 		var t ast.Term
 		p.nextToken()
