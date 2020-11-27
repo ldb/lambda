@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/ldb/lambda/lexer"
 	"github.com/ldb/lambda/parser"
 	"io"
 	"os"
+	"strings"
 )
 
 const prompt = "λ > "
@@ -51,7 +53,8 @@ func startREPL(in io.Reader, out io.Writer, mode mode) {
 		}
 
 		line := scanner.Text()
-		l := lexer.New(line)
+		trimmed := strings.Trim(line, " \n\t")
+		l := lexer.New(trimmed)
 		p := parser.New(l)
 
 		term := p.ParseLambdaTerm()
@@ -65,7 +68,11 @@ func startREPL(in io.Reader, out io.Writer, mode mode) {
 		}
 
 		if mode.IsSet(printAST) {
-			fmt.Fprintf(out, "ast: %+t\n", term)
+			b, err := json.Marshal(term)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(string(b))
 		}
 
 		io.WriteString(out, term.String())

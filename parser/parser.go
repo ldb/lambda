@@ -29,13 +29,33 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) ParseLambdaTerm() *ast.LambdaTerm {
-	lt := &ast.LambdaTerm{}
+	firstToken := p.curToken
 
-	if p.curTokenIs(token.EOF) {
-		return nil
+	var t ast.Term
+	switch p.curToken.Kind {
+	case token.IDENT:
+		t = p.parseVariableTerm()
+	case token.LAMBDA:
+		t = p.parseAbstractionTerm()
+	case token.LPAREN:
+		t = p.parseTerm()
+
 	}
 
-	lt.Term = p.parseTerm()
+	if p.peekTokenIs(token.EOF) {
+		return &ast.LambdaTerm{Term: t}
+	}
+	p.expectPeek(token.SPACE)
+	p.nextToken()
+	lt := &ast.LambdaTerm{
+		Term: &ast.ApplicationTerm{
+			Token: firstToken,
+			Left:  t,
+			Right: p.parseTerm(),
+		},
+	}
+
+	p.expectPeek(token.EOF)
 	return lt
 }
 
@@ -44,12 +64,19 @@ func (p *Parser) parseTerm() ast.Term {
 	case token.IDENT:
 		return p.parseVariableTerm()
 	case token.LPAREN:
-		if p.peekTokenIs(token.LAMBDA) {
-			return p.parseAbstractionTerm()
+		var t ast.Term
+		p.nextToken()
+		if p.curTokenIs(token.LAMBDA) {
+			t = p.parseAbstractionTerm()
+		} else {
+			t = p.parseApplicationTerm()
 		}
-		return p.parseApplicationTerm()
+		if !p.expectPeek(token.RPAREN) {
+			return nil
+		}
+		return t
 	default:
-		p.currentTokenError()
+		p.currentTokenError(token.LPAREN, token.IDENT)
 		return nil
 	}
 }
@@ -59,9 +86,7 @@ func (p *Parser) parseVariableTerm() *ast.VariableTerm {
 }
 
 func (p *Parser) parseAbstractionTerm() *ast.AbstractionTerm {
-	// (
 	t := &ast.AbstractionTerm{Token: p.curToken}
-	p.nextToken() // \
 	if !p.expectPeek(token.IDENT) {
 		return nil
 	}
@@ -71,23 +96,17 @@ func (p *Parser) parseAbstractionTerm() *ast.AbstractionTerm {
 	}
 	p.nextToken() // .
 	t.Body = p.parseTerm()
-	p.nextToken() // )
 	return t
 }
 
 func (p *Parser) parseApplicationTerm() *ast.ApplicationTerm {
-	// (
 	t := &ast.ApplicationTerm{Token: p.curToken}
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
 	t.Left = p.parseTerm() // LHS
 	if !p.expectPeek(token.SPACE) {
 		return nil
 	}
 	p.nextToken() // RHS
 	t.Right = p.parseTerm()
-	p.nextToken() // )
 	return t
 }
 
@@ -114,11 +133,11 @@ func (p *Parser) expectPeek(k token.Kind) bool {
 }
 
 func (p *Parser) peekTokenError(k token.Kind) {
-	e := fmt.Sprintf("unexpected next Token: %s, expected %s instead", p.peekToken.Kind, k)
+	e := fmt.Sprintf("unexpected next Token: expected %s, got %s instead", k, p.peekToken.Kind)
 	p.errors = append(p.errors, e)
 }
 
-func (p *Parser) currentTokenError() {
-	e := fmt.Sprintf("unexpected Token: %s, expected variable or (", p.curToken.Kind.String())
+func (p *Parser) currentTokenError(k ...token.Kind) {
+	e := fmt.Sprintf("unexpected Token: expected %s, got expected %s instead", k, p.curToken.Kind)
 	p.errors = append(p.errors, e)
 }
