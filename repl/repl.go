@@ -19,6 +19,7 @@ const (
 	None         Mode = 0
 	PrintLexemes Mode = 1 << iota
 	PrintAST
+	PrintFV
 )
 
 func (m Mode) Set(mode Mode) Mode   { return m | mode }
