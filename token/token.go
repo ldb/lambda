@@ -15,7 +15,7 @@ const (
 	LPAREN              // "("
 	RPAREN              // ")"
 	DOT                 // "."
-	IDENT               // any ASCII Char sequence
+	IDENT               // any ASCII Char
 	SPACE               // " "
 )
 
