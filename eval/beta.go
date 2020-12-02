@@ -12,24 +12,24 @@ func BetaReduce(term ast.Term) TermSet {
 	}
 	se := subExpressions(term)
 	for _, e := range se.s {
-		if isRedex(e) {
-			P := e.(*ast.ApplicationTerm)
-			Q := P.Left.(*ast.AbstractionTerm)
-
-			if vSetIn(FV(P.Right), Q.Variable) {
-				// TODO: Perform Alpha Conversion First
-				fmt.Printf("error: %s appears in FV(%s). Alpha Conversion necessary but not supported yet.\n", Q.Variable, P.Right)
-				return steps
-			}
-
-			t := SubstituteFree(Q.Body, Q.Variable, P.Right)
-			// Fixed-Point reached. (e.g for terms like "(\x.(x x)) (\y.(y y))" ).
-			if term.String() == t.String() {
-				return steps
-			}
-			r := BetaReduce(t)
-			steps.Add(r.Slice()...)
+		if !isRedex(e) {
+			return steps
 		}
+		P := e.(*ast.ApplicationTerm)
+		Q := P.Left.(*ast.AbstractionTerm)
+
+		if vSetIn(FV(P.Right), Q.Variable) {
+			// TODO: Perform Alpha Conversion First
+			fmt.Printf("error: %s appears in FV(%s). Alpha Conversion necessary but not supported yet.\n", Q.Variable, P.Right)
+			return steps
+		}
+		t := SubstituteFree(Q.Body, Q.Variable, P.Right)
+		if t.String() == term.String() { // Fixed-Point reached. (e.g for terms like "(\x.(x x)) (\y.(y y))" ).
+			fmt.Printf("fixed point reached for %s. Aborting reduction.\n", term.String())
+			return steps
+		}
+		r := BetaReduce(t)
+		steps.Add(r.Slice()...)
 	}
 	return steps
 }

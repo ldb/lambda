@@ -60,6 +60,7 @@ func TestBetaReduce(t *testing.T) {
 		{`\y.(x u)`, `(\y.(x u))`},
 		{`(\x.y) u`, `y`},
 		{`(\x.x) u`, `u`},
+		{`(\x.(x x)) (\y.(y y))`, `((\y.(y y)) (\y.(y y)))`},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {

@@ -12,6 +12,7 @@ type Node interface {
 
 type Term interface {
 	Node
+	Copy() Term
 	termNode()
 }
 
@@ -35,6 +36,10 @@ func (v *VariableTerm) termNode() {}
 func (v *VariableTerm) TokenLiteral() string {
 	return v.Token.Literal
 }
+func (v *VariableTerm) Copy() Term {
+	vc := *v
+	return Term(&vc)
+}
 func (v *VariableTerm) String() string {
 	return v.Value
 }
@@ -48,6 +53,12 @@ type ApplicationTerm struct {
 func (a *ApplicationTerm) termNode() {}
 func (a *ApplicationTerm) TokenLiteral() string {
 	return a.Token.Literal
+}
+func (a *ApplicationTerm) Copy() Term {
+	ac := *a
+	ac.Left = a.Left.Copy()
+	ac.Right = a.Right.Copy()
+	return Term(&ac)
 }
 func (a *ApplicationTerm) String() string {
 	out := bytes.Buffer{}
@@ -68,6 +79,12 @@ type AbstractionTerm struct {
 func (a *AbstractionTerm) termNode() {}
 func (a *AbstractionTerm) TokenLiteral() string {
 	return a.Token.Literal
+}
+func (a *AbstractionTerm) Copy() Term {
+	ac := *a
+	ac.Variable = a.Variable.Copy().(*VariableTerm)
+	ac.Body = a.Body.Copy()
+	return Term(&ac)
 }
 func (a *AbstractionTerm) String() string {
 	out := bytes.Buffer{}

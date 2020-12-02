@@ -45,6 +45,7 @@ func TestSubstitute(t *testing.T) {
 		{"y", "x", "z", "y"},
 		{"((u v) (x y))", "x", "z", "((u v) (z y))"},
 		{`((u v) \x.x)`, "x", "z", `((u v) (\x.x))`},
+		{`(x x)`, "x", `\x.x`, `((\x.x) (\x.x))`},
 		{`\y.(x u)`, "x", "z", `(\y.(z u))`},
 		{`\x.(x u)`, "x", "z", `(\x.(x u))`},
 		{`\x.y`, "y", "x", `(\x.y)`},
@@ -63,7 +64,7 @@ func TestSubstitute(t *testing.T) {
 
 			e := SubstituteFree(M, x, N)
 			if e.String() != tc.expected {
-				t.Fatalf("unexpected substitution result: got=%s, expected=%s", e.String(), tc.expected)
+				t.Fatalf("unexpected substitution of %s, result: got=%s, expected=%s", tc.inputM, e.String(), tc.expected)
 			}
 		})
 	}

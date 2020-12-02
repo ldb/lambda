@@ -1,6 +1,8 @@
 package eval
 
-import "github.com/ldb/lambda/ast"
+import (
+	"github.com/ldb/lambda/ast"
+)
 
 // FV returns the Free Variables (Notation FV(M)) of an ast.Term M.
 // That is, a slice of ast.VariableTerm which are not bound by an abstraction.
@@ -49,7 +51,7 @@ func vSetIn(set []*ast.VariableTerm, item *ast.VariableTerm) bool {
 	return false
 }
 
-// substituteBound substitutes N for free occurrences of x in M, notation M[x:=N]:
+// SubstituteFree substitutes N for free occurrences of x in M, notation M[x:=N] and returns a new ast.Term:
 // x[x:=N]       === N;
 // y[x:=N]       === y;
 // (P Q)[x:=N]   === (P[x:=N])(Q[x:=N]);
@@ -57,13 +59,15 @@ func vSetIn(set []*ast.VariableTerm, item *ast.VariableTerm) bool {
 // (\x.(P[x:=N]) === (\x.P)
 func SubstituteFree(M ast.Term, x *ast.VariableTerm, N ast.Term) ast.Term {
 	if !vSetIn(FV(M), x) {
-		return M
+		return M.Copy()
 	}
 
-	switch t := M.(type) {
+	T := M.Copy()
+
+	switch t := T.(type) {
 	case *ast.VariableTerm:
 		if t.Value == x.Value {
-			M = N
+			T = N.Copy()
 		}
 	case *ast.ApplicationTerm:
 		t.Left = SubstituteFree(t.Left, x, N)
@@ -74,5 +78,5 @@ func SubstituteFree(M ast.Term, x *ast.VariableTerm, N ast.Term) ast.Term {
 		}
 		t.Body = SubstituteFree(t.Body, x, N)
 	}
-	return M
+	return T
 }
