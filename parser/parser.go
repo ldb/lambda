@@ -47,7 +47,6 @@ func (p *Parser) ParseLambdaTerm() *ast.LambdaTerm {
 		t = p.parseAbstractionTerm()
 	case token.LPAREN:
 		t = p.parseTerm()
-
 	}
 
 	if p.peekTokenIs(token.EOF) {

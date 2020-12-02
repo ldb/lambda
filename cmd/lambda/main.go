@@ -20,6 +20,6 @@ func main() {
 		m = m.Set(repl.PrintAST)
 	}
 
-	fmt.Println("Welcome to lambda, Leo's tiny Lambda Calculus Interpreter")
+	fmt.Println("Welcome to lambda, a tiny Lambda Calculus Interpreter")
 	repl.Start(os.Stdin, os.Stdout, m)
 }

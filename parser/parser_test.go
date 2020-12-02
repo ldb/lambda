@@ -81,6 +81,7 @@ func TestParseApplicationTerm(t *testing.T) {
 		{"(x x) (x x)", "(x x)", "(x x)"},
 		{`(x (\x.x))`, "x", `(\x.x)`},
 		{`\x.x \y.y`, `(\x.x)`, `(\y.y)`},
+		{`((\z.(\w.w)) z)`, `(\z.(\w.w))`, `z`},
 	}
 
 	for _, tc := range testCases {

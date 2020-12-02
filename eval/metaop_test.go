@@ -2,8 +2,7 @@ package eval
 
 import (
 	"github.com/ldb/lambda/ast"
-	"github.com/ldb/lambda/lexer"
-	"github.com/ldb/lambda/parser"
+	"github.com/ldb/lambda/testutil"
 	"testing"
 )
 
@@ -21,7 +20,7 @@ func TestFV(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			term := parse(tc.input)
+			term := testutil.Parse(t, tc.input)
 			fv := FV(term)
 			if len(fv) != len(tc.expected) {
 				t.Fatalf("unequal lengh: got=%d, expected=%d", len(fv), len(tc.expected))
@@ -48,30 +47,24 @@ func TestSubstitute(t *testing.T) {
 		{`((u v) \x.x)`, "x", "z", `((u v) (\x.x))`},
 		{`\y.(x u)`, "x", "z", `(\y.(z u))`},
 		{`\x.(x u)`, "x", "z", `(\x.(x u))`},
+		{`\x.y`, "y", "x", `(\x.y)`},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.inputM, func(t *testing.T) {
-			M := parse(tc.inputM)
-			xt := parse(tc.inputx)
-			N := parse(tc.inputN)
+			M := testutil.Parse(t, tc.inputM)
+			xt := testutil.Parse(t, tc.inputx)
+			N := testutil.Parse(t, tc.inputN)
 
 			x, ok := xt.(*ast.VariableTerm)
 			if !ok {
 				t.Fatal("inputx is not a valid *ast.VariableTerm")
 			}
 
-			e := Substitute(M, x, N)
+			e := substituteBound(M, x, N)
 			if e.String() != tc.expected {
 				t.Fatalf("unexpected substitution result: got=%s, expected=%s", e.String(), tc.expected)
 			}
 		})
 	}
-}
-
-func parse(s string) ast.Term {
-	l := lexer.New(s)
-	p := parser.New(l)
-	lt := p.ParseLambdaTerm()
-	return lt.Term
 }

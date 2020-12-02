@@ -49,13 +49,13 @@ func vSetIn(set []*ast.VariableTerm, item *ast.VariableTerm) bool {
 	return false
 }
 
-// Substitute substitutes N for free occurrences of x in M, notation M[x:=N]:
+// substituteBound substitutes N for free occurrences of x in M, notation M[x:=N]:
 // x[x:=N]       === N;
 // y[x:=N]       === y;
 // (P Q)[x:=N]   === (P[x:=N])(Q[x:=N]);
-// (\y.P)[x:=N]  === (\y.(P[x:=N]); provided x !== y
+// (\y.P)[x:=N]  === (\y.(P[x:=N]); provided x !== y and y not in FV(N)
 // (\x.(P[x:=N]) === (\x.P)
-func Substitute(M ast.Term, x *ast.VariableTerm, N ast.Term) ast.Term {
+func SubstituteFree(M ast.Term, x *ast.VariableTerm, N ast.Term) ast.Term {
 	if !vSetIn(FV(M), x) {
 		return M
 	}
@@ -66,10 +66,13 @@ func Substitute(M ast.Term, x *ast.VariableTerm, N ast.Term) ast.Term {
 			M = N
 		}
 	case *ast.ApplicationTerm:
-		t.Left = Substitute(t.Left, x, N)
-		t.Right = Substitute(t.Right, x, N)
+		t.Left = SubstituteFree(t.Left, x, N)
+		t.Right = SubstituteFree(t.Right, x, N)
 	case *ast.AbstractionTerm:
-		t.Body = Substitute(t.Body, x, N)
+		if vSetIn(FV(N), t.Variable) {
+			break
+		}
+		t.Body = SubstituteFree(t.Body, x, N)
 	}
 	return M
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ldb/lambda/eval"
 	"github.com/ldb/lambda/lexer"
 	"github.com/ldb/lambda/parser"
 	"io"
@@ -12,6 +13,7 @@ import (
 )
 
 const prompt = "λ > "
+const betaPrompt = "β > "
 
 type Mode uint8
 
@@ -37,6 +39,9 @@ func Start(in io.Reader, out io.Writer, mode Mode) {
 
 		line := scanner.Text()
 		trimmed := strings.Trim(line, " \n\t")
+		if trimmed == "" {
+			continue
+		}
 		l := lexer.New(trimmed)
 		p := parser.New(l)
 
@@ -58,7 +63,11 @@ func Start(in io.Reader, out io.Writer, mode Mode) {
 			fmt.Fprintf(out, "ast: %s\n", b)
 		}
 
-		fmt.Fprintln(out, term.String())
+		steps := eval.BetaReduce(term.Term)
+		for _, s := range steps.Slice() {
+			fmt.Fprint(out, betaPrompt)
+			fmt.Fprintln(out, s.String())
+		}
 	}
 }
 
