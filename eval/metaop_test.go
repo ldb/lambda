@@ -61,7 +61,7 @@ func TestSubstitute(t *testing.T) {
 				t.Fatal("inputx is not a valid *ast.VariableTerm")
 			}
 
-			e := substituteBound(M, x, N)
+			e := SubstituteFree(M, x, N)
 			if e.String() != tc.expected {
 				t.Fatalf("unexpected substitution result: got=%s, expected=%s", e.String(), tc.expected)
 			}

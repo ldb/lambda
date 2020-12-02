@@ -54,17 +54,18 @@ func TestBetaReduce(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"x", ""},
-		{"((u v) (x y))", ""},
-		{`((u v) \x.x)`, "true"},
-		{`\y.(x u)`, "true"},
-		{`(\x.y) u`, "false"},
+		{"x", "x"},
+		{"((u v) (x y))", "((u v) (x y))"},
+		{`((u v) \x.x)`, `((u v) (\x.x))`},
+		{`\y.(x u)`, `(\y.(x u))`},
+		{`(\x.y) u`, `y`},
+		{`(\x.x) u`, `u`},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
 			term := testutil.Parse(t, tc.input)
 			ss := BetaReduce(term)
-			r := ss[len(ss)-1].String()
+			r := ss.s[len(ss.s)-1].String()
 			if r != tc.expected {
 				t.Fatalf("unexpected result for input %s: got=%s, expected=%s", tc.input, r, tc.expected)
 			}

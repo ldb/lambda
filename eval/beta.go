@@ -10,10 +10,6 @@ func BetaReduce(term ast.Term) TermSet {
 	if isNF(term) {
 		return steps
 	}
-	// Fixed-Point reached. (e.g for terms like "(\x.(x x)) (\y.(y y))" ).
-	if term.String() == steps.Slice()[len(steps.Slice())-1].String() {
-		return steps
-	}
 	se := subExpressions(term)
 	for _, e := range se.s {
 		if isRedex(e) {
@@ -27,6 +23,10 @@ func BetaReduce(term ast.Term) TermSet {
 			}
 
 			t := SubstituteFree(Q.Body, Q.Variable, P.Right)
+			// Fixed-Point reached. (e.g for terms like "(\x.(x x)) (\y.(y y))" ).
+			if term.String() == t.String() {
+				return steps
+			}
 			r := BetaReduce(t)
 			steps.Add(r.Slice()...)
 		}
