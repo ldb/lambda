@@ -22,6 +22,7 @@ const (
 	PrintLexemes Mode = 1 << iota
 	PrintAST
 	PrintFV
+	WASM
 )
 
 func (m Mode) Set(mode Mode) Mode   { return m | mode }
@@ -31,7 +32,9 @@ func Start(in io.Reader, out io.Writer, mode Mode) {
 	scanner := bufio.NewScanner(in)
 
 	for {
-		fmt.Fprint(out, prompt)
+		if !mode.IsSet(WASM) {
+			fmt.Fprint(out, prompt)
+		}
 		scanned := scanner.Scan()
 		if !scanned {
 			return

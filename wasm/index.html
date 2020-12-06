@@ -1,0 +1,30 @@
+<html>
+<head>
+    <!-- This code is mostly based on Martin "arp242" Tournoij's work. See https://www.arp242.net/wasm-cli.html for more. -->
+    <meta charset="utf-8">
+    <title>lambda - Lambda Calculus Interpreter</title>
+    <style>
+		.light, .light input { background-color: #fff;     color: #252525; }
+		.dark,  .dark  input { background-color: #252525;  color: #fff; }
+		.sepia, .sepia input { background-color: #f4ecd8; color: #5b4636; }
+		input         { flex-grow: 1; outline: none; }
+		button        { float: right; }
+		pre { font: 16px monospace; }
+		input, button { font: 16px monospace; border: 0px solid #666; }
+		input:focus   { box-shadow: 0px 0px .2em #6262fd; }
+		h { font: 24px monospace; }
+		#terminal { font: 16px monospace; overflow: auto; word-wrap: break-word; width: 800px; height: 450px; margin: 0 auto; padding: 2px; }
+  	</style>
+</head>
+    <body class="light">
+        <div id="terminal">
+            <h1>lambda interactive terminal</h1>
+            <hl></hl>
+            <pre id="output"></pre>
+            <input onblur="this.focus()" id="input">
+            <button class="permalink">Permalink</button>
+        </div>
+        <script src="wasm_exec.js"></script>
+        <script src="term.js"></script>
+    </body>
+</html>
